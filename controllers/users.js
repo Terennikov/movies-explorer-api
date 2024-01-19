@@ -7,19 +7,15 @@ import BadRequestError from '../utils/errors/BadRequestError.js';
 import NotFoundError from '../utils/errors/NotFoundError.js';
 import UnauthorizedError from '../utils/errors/UnauthorizedError.js';
 import UserAlreadExistsError from '../utils/errors/UserAlreadyExistsError.js';
-
-const ERROR_CODE_DUPLICATE_MONGO = 11000;
-
+import { errorstxt } from '../utils/errorsAndResponses.js';
 
 const { SALT_ROUNDS = 10 } = process.env;
 
 export const createUser = async (req, res, next) => {
   try {
-    const {
-      email, password, name} = req.body;
+    const { email, password, name } = req.body;
     const hash = await bcrypt.hash(password, SALT_ROUNDS);
-    const newUser = await User.create({
-      email, password: hash, name});
+    const newUser = await User.create({ email, password: hash, name });
     return res.status(StatusCodes.CREATED).send({
       email: newUser.email,
       _id: newUser._id,
@@ -29,8 +25,8 @@ export const createUser = async (req, res, next) => {
     if (error instanceof mongoose.Error.ValidationError) {
       return next(new BadRequestError(error));
     }
-    if (error.code === ERROR_CODE_DUPLICATE_MONGO) {
-      return next(new UserAlreadExistsError('Пользователь уже существует'));
+    if (error.code === errorstxt.ERROR_CODE_DUPLICATE_MONGO) {
+      return next(new UserAlreadExistsError(errorstxt.alreadyExists));
     }
     return next(error);
   }
@@ -40,9 +36,12 @@ export const getCurrentUser = async (req, res, next) => {
   try {
     const currentUser = await User.findById(req.user._id);
     if (!currentUser) {
-      throw new NotFoundError('Пользователь с таким id не найден');
+      throw new NotFoundError(errorstxt.idNotFounded);
     }
-    return res.status(StatusCodes.OK).send(currentUser); //отправлять email и name
+    return res.status(StatusCodes.OK).send({
+      name: currentUser.name,
+      email: currentUser.email,
+    });
   } catch (error) {
     return next(error);
   }
@@ -53,11 +52,11 @@ export const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email }, { runValidators: true }).select('+password');
     if (!user) {
-      throw new UnauthorizedError('Пользователь с таким Email в БД не найден');
+      throw new UnauthorizedError(errorstxt.notFoundEmail);
     }
     const matched = await bcrypt.compare(String(password), user.password);
     if (!matched) {
-      throw new UnauthorizedError('Необходимо авторизоваться');
+      throw new UnauthorizedError(errorstxt.notRightPassword);
     }
     const token = auth({ _id: user._id });
     return res.send({ token: `${token}` });
@@ -81,7 +80,10 @@ async function findByIdAndUpdate(reqId, reqBody, next) {
       return next(new BadRequestError(error));
     }
     if (error instanceof mongoose.Error.DocumentNotFoundError) {
-      return next(new NotFoundError('Пользователь по id не найдена'));
+      return next(new NotFoundError(errorstxt.idNotFounded));
+    }
+    if (error.code === errorstxt.ERROR_CODE_DUPLICATE_MONGO) {
+      return next(new UserAlreadExistsError(errorstxt.emailIsAlreadyUse));
     }
     return next(error);
   }
@@ -90,7 +92,10 @@ async function findByIdAndUpdate(reqId, reqBody, next) {
 export const updateProfile = async (req, res, next) => {
   try {
     const user = await findByIdAndUpdate(req.user._id, req.body, next);
-    return res.status(StatusCodes.OK).send(user);
+    if (user) {
+      return res.status(StatusCodes.OK).send(user);
+    }
+    return false;
   } catch (error) {
     return next(error);
   }

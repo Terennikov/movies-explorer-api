@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import URLREGEXP from '../utils/constans.js';
+import { errorstxt } from '../utils/errorsAndResponses.js';
 
 const movieSheme = new mongoose.Schema(
   {
@@ -25,7 +26,7 @@ const movieSheme = new mongoose.Schema(
       required: true,
       validate: {
         validator: (v) => URLREGEXP.test(v),
-        message: (props) => `${props.value} Не валидный URL адрес`,
+        message: (props) => `${props.value} ${errorstxt.notValidUrl}`,
       },
     },
     trailerLink: {
@@ -33,7 +34,7 @@ const movieSheme = new mongoose.Schema(
       required: true,
       validate: {
         validator: (v) => URLREGEXP.test(v),
-        message: (props) => `${props.value} Не валидный URL адрес`,
+        message: (props) => `${props.value} ${errorstxt.notValidUrl}`,
       },
     },
     image: {
@@ -41,7 +42,7 @@ const movieSheme = new mongoose.Schema(
       required: true,
       validate: {
         validator: (v) => URLREGEXP.test(v),
-        message: (props) => `${props.value} Не валидный URL адрес`,
+        message: (props) => `${props.value} ${errorstxt.notValidUrl}`,
       },
     },
     description: {

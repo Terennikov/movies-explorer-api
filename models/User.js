@@ -1,13 +1,14 @@
 import mongoose from 'mongoose';
 import isEmail from 'validator/lib/isEmail.js';
+import { errorstxt } from '../utils/errorsAndResponses.js';
 
 const userSheme = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
-      minlength: [2, 'Минимальная длинна 2 символа'],
-      maxlenght: [30, 'Максимальная длинна 30 символов'],
+      minlength: [2, `${errorstxt.minLenght}`],
+      maxlenght: [30, `${errorstxt.maxLenght}`],
     },
     email: {
       type: String,
@@ -15,7 +16,7 @@ const userSheme = new mongoose.Schema(
       unique: true,
       validate: {
         validator: (v) => isEmail(v),
-        message: (props) => `${props.value} не валидный email`,
+        message: (props) => `${props.value} ${errorstxt.notValidEmail}`,
       },
     },
     password: {
@@ -24,7 +25,7 @@ const userSheme = new mongoose.Schema(
       select: false,
     },
   },
-  
+
   {
     versionKey: false,
     timestamps: true,
