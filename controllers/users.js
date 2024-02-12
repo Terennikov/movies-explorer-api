@@ -41,6 +41,7 @@ export const getCurrentUser = async (req, res, next) => {
     return res.status(StatusCodes.OK).send({
       name: currentUser.name,
       email: currentUser.email,
+      _id: currentUser._id
     });
   } catch (error) {
     return next(error);
