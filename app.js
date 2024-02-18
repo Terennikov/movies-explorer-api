@@ -12,13 +12,18 @@ import { requestLogger, errorLogger } from './middlewares/logger.js';
 import dburltest from './utils/mongourl.js';
 import { errorstxt, responses } from './utils/errorsAndResponses.js';
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3005 } = process.env;
 const { DB_CONN = dburltest } = process.env;
 config();
 const app = express();
-app.use(cors());
+const corsConfig = {
+  credentials: true,
+  origin: true,
+};
+app.use(cors(corsConfig));
 app.use(helmet());
 app.use(limiter);
+
 
 mongoose.connect(DB_CONN);
 app.use(json());

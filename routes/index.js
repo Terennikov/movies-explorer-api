@@ -6,6 +6,7 @@ import { checkSigninValidation, checkSignupValidation } from '../middlewares/val
 import { createUser, login } from '../controllers/users.js';
 
 const router = Router();
+
 router.post('/signup', checkSignupValidation, createUser);
 router.post('/signin', checkSigninValidation, login);
 
